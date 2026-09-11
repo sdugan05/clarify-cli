@@ -1,0 +1,534 @@
+[
+ {
+  "operationId": "getActivities",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{record}/activities",
+  "tag": "Activities",
+  "summary": "List record activities"
+ },
+ {
+  "operationId": "getRecipients",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/campaigns/{campaignId}/recipients",
+  "tag": "Campaigns",
+  "summary": "List campaign recipients"
+ },
+ {
+  "operationId": "createComment",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/comments",
+  "tag": "Comments",
+  "summary": "Create a comment"
+ },
+ {
+  "operationId": "deleteComment",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/comments/{id}",
+  "tag": "Comments",
+  "summary": "Delete a comment"
+ },
+ {
+  "operationId": "getComment",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/comments/{id}",
+  "tag": "Comments",
+  "summary": "Get a comment"
+ },
+ {
+  "operationId": "updateComment",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/comments/{id}",
+  "tag": "Comments",
+  "summary": "Update a comment"
+ },
+ {
+  "operationId": "getLayoutById",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/layouts/{id}",
+  "tag": "Layouts",
+  "summary": "Get a layout"
+ },
+ {
+  "operationId": "updateLayout",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/layouts/{id}",
+  "tag": "Layouts",
+  "summary": "Update a layout"
+ },
+ {
+  "operationId": "resetLayout",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/layouts/{id}/reset",
+  "tag": "Layouts",
+  "summary": "Reset a layout"
+ },
+ {
+  "operationId": "getListRowsCsv",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}/rows/csv",
+  "tag": "ListRows",
+  "summary": "Export a list\u2019s rows as CSV"
+ },
+ {
+  "operationId": "getWorkspaceLists",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/lists",
+  "tag": "Lists",
+  "summary": "List a workspace\u2019s lists"
+ },
+ {
+  "operationId": "getLists",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/lists",
+  "tag": "Lists",
+  "summary": "List an object\u2019s lists"
+ },
+ {
+  "operationId": "createList",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/lists",
+  "tag": "Lists",
+  "summary": "Create a list"
+ },
+ {
+  "operationId": "deleteList",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}",
+  "tag": "Lists",
+  "summary": "Delete a list"
+ },
+ {
+  "operationId": "getList",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}",
+  "tag": "Lists",
+  "summary": "Get a list"
+ },
+ {
+  "operationId": "updateList",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}",
+  "tag": "Lists",
+  "summary": "Update a list"
+ },
+ {
+  "operationId": "publishList",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}/publish",
+  "tag": "Lists",
+  "summary": "Publish a list"
+ },
+ {
+  "operationId": "unpublishList",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}/unpublish",
+  "tag": "Lists",
+  "summary": "Unpublish a list"
+ },
+ {
+  "operationId": "disableRecording",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recording",
+  "tag": "MeetingRecordings",
+  "summary": "Disable meeting recording"
+ },
+ {
+  "operationId": "enableRecording",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recording",
+  "tag": "MeetingRecordings",
+  "summary": "Enable meeting recording"
+ },
+ {
+  "operationId": "initMediaUpload",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recordings/media",
+  "tag": "MeetingRecordings",
+  "summary": "Start a recording media upload"
+ },
+ {
+  "operationId": "confirmMediaUpload",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recordings/media/{recordingId}",
+  "tag": "MeetingRecordings",
+  "summary": "Confirm a recording media upload"
+ },
+ {
+  "operationId": "uploadRecordingTranscript",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recordings/transcript",
+  "tag": "MeetingRecordings",
+  "summary": "Upload a recording transcript"
+ },
+ {
+  "operationId": "getRecordingArtifacts",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/recordings/{id}/artifacts",
+  "tag": "MeetingRecordings",
+  "summary": "Get recording artifacts"
+ },
+ {
+  "operationId": "uploadTranscript",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/meetings/{meetingId}/transcript",
+  "tag": "MeetingRecordings",
+  "summary": "Upload a meeting transcript"
+ },
+ {
+  "operationId": "getObjectAccess",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/access",
+  "tag": "ObjectAccess",
+  "summary": "List object access delegations"
+ },
+ {
+  "operationId": "giveObjectAccess",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/access",
+  "tag": "ObjectAccess",
+  "summary": "Grant object access"
+ },
+ {
+  "operationId": "revokeObjectAccess",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/access/{id}",
+  "tag": "ObjectAccess",
+  "summary": "Revoke object access"
+ },
+ {
+  "operationId": "getGrants",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/access",
+  "tag": "RecordAccess",
+  "summary": "List record access grants"
+ },
+ {
+  "operationId": "createGrant",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/access",
+  "tag": "RecordAccess",
+  "summary": "Create a record access grant"
+ },
+ {
+  "operationId": "createGrantsBulk",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/access/bulk",
+  "tag": "RecordAccess",
+  "summary": "Create record access grants in bulk"
+ },
+ {
+  "operationId": "revokeGrant",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/access/{grantId}",
+  "tag": "RecordAccess",
+  "summary": "Revoke a record access grant"
+ },
+ {
+  "operationId": "updateGrant",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/access/{grantId}",
+  "tag": "RecordAccess",
+  "summary": "Update a record access grant"
+ },
+ {
+  "operationId": "listRecordAttachments",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/attachments",
+  "tag": "RecordAttachments",
+  "summary": "List record attachments"
+ },
+ {
+  "operationId": "addRecordAttachment",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/attachments",
+  "tag": "RecordAttachments",
+  "summary": "Attach an uploaded file to a record"
+ },
+ {
+  "operationId": "getSignedUrlForRecordAttachmentUpload",
+  "method": "PUT",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/attachments",
+  "tag": "RecordAttachments",
+  "summary": "Request an attachment upload URL"
+ },
+ {
+  "operationId": "deleteRecordAttachment",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/attachments/{attachmentId}",
+  "tag": "RecordAttachments",
+  "summary": "Delete a record attachment"
+ },
+ {
+  "operationId": "getRecordAttachment",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/attachments/{attachmentId}",
+  "tag": "RecordAttachments",
+  "summary": "Get an attachment download URL"
+ },
+ {
+  "operationId": "deleteRecordRelationship",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/relationships/{relationship}",
+  "tag": "RecordRelationships",
+  "summary": "Unlink related records"
+ },
+ {
+  "operationId": "getRecordRelationships",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/relationships/{relationship}",
+  "tag": "RecordRelationships",
+  "summary": "List related records"
+ },
+ {
+  "operationId": "updateRecordRelationship",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}/relationships/{relationship}",
+  "tag": "RecordRelationships",
+  "summary": "Replace related records"
+ },
+ {
+  "operationId": "deleteRecords",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/records",
+  "tag": "Records",
+  "summary": "Delete records in bulk"
+ },
+ {
+  "operationId": "updateRecords",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/objects/{object}/records",
+  "tag": "Records",
+  "summary": "Update records in bulk"
+ },
+ {
+  "operationId": "createRecord",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records",
+  "tag": "Records",
+  "summary": "Create a record"
+ },
+ {
+  "operationId": "createBulkRecords",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records/bulk",
+  "tag": "Records",
+  "summary": "Create records in bulk"
+ },
+ {
+  "operationId": "deleteRecord",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}",
+  "tag": "Records",
+  "summary": "Delete a record"
+ },
+ {
+  "operationId": "getRecord",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}",
+  "tag": "Records",
+  "summary": "Get a record"
+ },
+ {
+  "operationId": "updateRecord",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{id}",
+  "tag": "Records",
+  "summary": "Update a record"
+ },
+ {
+  "operationId": "mergeRecords",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/records/{record}/merges",
+  "tag": "Records",
+  "summary": "Merge records"
+ },
+ {
+  "operationId": "getDeletedResources",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/deleted-resources",
+  "tag": "Resources",
+  "summary": "List deleted resources"
+ },
+ {
+  "operationId": "getResources",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/resources",
+  "tag": "Resources",
+  "summary": "List resources"
+ },
+ {
+  "operationId": "createResource",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/objects/{object}/resources",
+  "tag": "Resources",
+  "summary": "Create a resource"
+ },
+ {
+  "operationId": "getResource",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/resources/{id}",
+  "tag": "Resources",
+  "summary": "Get a resource"
+ },
+ {
+  "operationId": "getSchemas",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/schemas",
+  "tag": "Schemas",
+  "summary": "List object schemas"
+ },
+ {
+  "operationId": "patchEnumFieldValues",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/schemas",
+  "tag": "Schemas",
+  "summary": "Add or remove enum field values"
+ },
+ {
+  "operationId": "createCustomObject",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/schemas/objects",
+  "tag": "Schemas",
+  "summary": "Create a custom object"
+ },
+ {
+  "operationId": "deleteCustomObject",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/schemas/objects/{object}",
+  "tag": "Schemas",
+  "summary": "Delete a custom object"
+ },
+ {
+  "operationId": "updateEntitySchema",
+  "method": "PUT",
+  "path": "/workspaces/{workspace}/schemas/objects/{object}",
+  "tag": "Schemas",
+  "summary": "Replace an object schema"
+ },
+ {
+  "operationId": "getSchemaActivities",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/schemas/{entity}/activities",
+  "tag": "Schemas",
+  "summary": "List schema activities"
+ },
+ {
+  "operationId": "updateSchemaPropertyOrder",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/schemas/{entity}/fields-order",
+  "tag": "Schemas",
+  "summary": "Reorder object fields"
+ },
+ {
+  "operationId": "updateSchemaPropertyVisibility",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/schemas/{entity}/fields-visibility",
+  "tag": "Schemas",
+  "summary": "Set object field visibility"
+ },
+ {
+  "operationId": "createSchemaProperties",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/schemas/{entity}/properties",
+  "tag": "Schemas",
+  "summary": "Add object fields"
+ },
+ {
+  "operationId": "createSchemaRelationshipProperties",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/schemas/{entity}/relationships",
+  "tag": "Schemas",
+  "summary": "Add object relationships"
+ },
+ {
+  "operationId": "deleteSchemaRelationshipProperty",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/schemas/{entity}/relationships/{fieldName}",
+  "tag": "Schemas",
+  "summary": "Delete an object relationship"
+ },
+ {
+  "operationId": "getUsers",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/users",
+  "tag": "Users",
+  "summary": "List users"
+ },
+ {
+  "operationId": "getUser",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/users/{userId}",
+  "tag": "Users",
+  "summary": "Get a user"
+ },
+ {
+  "operationId": "getWorkflows",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/workflows",
+  "tag": "Workflows",
+  "summary": "List workflows"
+ },
+ {
+  "operationId": "createWorkflow",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/workflows",
+  "tag": "Workflows",
+  "summary": "Create a workflow"
+ },
+ {
+  "operationId": "deleteWorkflow",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/workflows/{id}",
+  "tag": "Workflows",
+  "summary": "Delete a workflow"
+ },
+ {
+  "operationId": "getWorkflow",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/workflows/{id}",
+  "tag": "Workflows",
+  "summary": "Get a workflow"
+ },
+ {
+  "operationId": "updateWorkflow",
+  "method": "PATCH",
+  "path": "/workspaces/{workspace}/workflows/{id}",
+  "tag": "Workflows",
+  "summary": "Update a workflow"
+ },
+ {
+  "operationId": "deleteWorkspaceSetting",
+  "method": "DELETE",
+  "path": "/workspaces/{workspace}/settings",
+  "tag": "WorkspaceSettings",
+  "summary": "Reset a workspace setting"
+ },
+ {
+  "operationId": "readAllWorkspaceSettings",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/settings",
+  "tag": "WorkspaceSettings",
+  "summary": "List workspace settings"
+ },
+ {
+  "operationId": "writeWorkspaceSetting",
+  "method": "POST",
+  "path": "/workspaces/{workspace}/settings",
+  "tag": "WorkspaceSettings",
+  "summary": "Write a workspace setting"
+ },
+ {
+  "operationId": "readWorkspaceSettings",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/settings/{key}",
+  "tag": "WorkspaceSettings",
+  "summary": "Get a workspace setting"
+ },
+ {
+  "operationId": "getListResources",
+  "method": "GET",
+  "path": "/workspaces/{workspace}/objects/{object}/lists/{list}/resources",
+  "tag": "resources",
+  "summary": "List resources in a list"
+ }
+]

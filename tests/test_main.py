@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 from clarify_cli import __version__
+from clarify_cli.main import IMPORT_ERRORS
+
+
+def test_every_command_group_imports():
+    assert IMPORT_ERRORS == {}
 
 
 def test_version(invoke):

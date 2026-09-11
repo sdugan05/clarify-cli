@@ -10,6 +10,7 @@ import typer
 from . import __version__
 from .commands import GROUPS
 from .config import resolve_settings
+from .errors import ClarifyError
 from .output import OutputFormat
 from .params import parse_csv_list
 from .state import AppState
@@ -95,9 +96,31 @@ def main(
     )
 
 
+#: Command groups that failed to import, keyed by CLI name. Always empty in a
+#: healthy install; a test asserts that.
+IMPORT_ERRORS: dict[str, str] = {}
+
+
+def _broken_group(cli_name: str, help_text: str, error: str) -> typer.Typer:
+    broken = typer.Typer(help=help_text, no_args_is_help=False)
+
+    @broken.callback(invoke_without_command=True)
+    def _fail() -> None:
+        raise ClarifyError(f"The '{cli_name}' command group failed to load: {error}")
+
+    return broken
+
+
 def _register_groups() -> None:
     for cli_name, module_name, help_text in GROUPS:
-        module = importlib.import_module(f"clarify_cli.commands.{module_name}")
+        try:
+            module = importlib.import_module(f"clarify_cli.commands.{module_name}")
+        except Exception as exc:
+            IMPORT_ERRORS[cli_name] = f"{type(exc).__name__}: {exc}"
+            app.add_typer(
+                _broken_group(cli_name, help_text, IMPORT_ERRORS[cli_name]), name=cli_name
+            )
+            continue
         if hasattr(module, "app"):
             app.add_typer(module.app, name=cli_name, help=help_text)
         else:
