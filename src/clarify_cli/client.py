@@ -26,7 +26,7 @@ RETRY_STATUSES = frozenset({429, 502, 503, 504})
 IDEMPOTENT_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 MAX_RETRY_DELAY = 30.0
 DEFAULT_PAGE_SIZE_ALL = 500
-MAX_PAGE_SIZE = 1000
+MAX_PAGE_SIZE = 500  # several endpoints declare page[limit] maximum 500
 
 
 def _stringify(value: Any) -> str:
@@ -174,9 +174,11 @@ class ClarifyClient:
         if response.status_code == 204 or not response.content:
             return None
         try:
-            return response.json()
+            body = response.json()
         except ValueError:
             return response.text
+        # A bare ``{}`` (some delete endpoints) carries nothing worth printing.
+        return None if body == {} else body
 
     def get(self, path: str, params: Params = None, **kwargs: Any) -> Any:
         return self.json("GET", path, params=params, **kwargs)
@@ -235,13 +237,16 @@ class ClarifyClient:
 
         Returns ``{"data": [...], "included": [...], "meta": {...}}`` where
         ``meta`` carries ``total_records``/``total_pages`` from the first page
-        plus ``returned``.
+        plus ``returned``. ``page[limit]`` never exceeds 500, the maximum several
+        endpoints declare.
         """
         if page_size is None:
             if all_pages or limit is None:
                 page_size = DEFAULT_PAGE_SIZE_ALL
             else:
                 page_size = max(1, min(limit, MAX_PAGE_SIZE))
+        else:
+            page_size = max(1, min(page_size, MAX_PAGE_SIZE))
         data: list[Any] = []
         included: list[Any] = []
         meta: dict[str, Any] = {}

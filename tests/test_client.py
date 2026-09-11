@@ -243,3 +243,16 @@ def test_collect_explicit_page_size(api, client):
     route = api.get("/workspaces/acme/users").mock(return_value=httpx.Response(200, json=page([])))
     client.collect("/users", limit=50, page_size=7)
     assert query_pairs(route.calls.last.request) == [("page[limit]", "7")]
+
+
+def test_collect_caps_explicit_page_size_at_500(api, client):
+    route = api.get("/workspaces/acme/users").mock(return_value=httpx.Response(200, json=page([])))
+    client.collect("/users", limit=50, page_size=900)
+    assert query_pairs(route.calls.last.request) == [("page[limit]", "500")]
+
+
+def test_empty_object_body_is_treated_as_empty(api, client):
+    api.delete("/workspaces/acme/objects/person/records/1").mock(
+        return_value=httpx.Response(200, json={})
+    )
+    assert client.delete("/objects/person/records/1") is None

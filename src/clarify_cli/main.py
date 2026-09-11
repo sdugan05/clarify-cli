@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import importlib
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
+from typer import rich_utils
 
 from . import __version__
 from .commands import GROUPS
@@ -128,3 +129,24 @@ def _register_groups() -> None:
 
 
 _register_groups()
+
+
+def _install_plain_error_rendering() -> None:
+    """Print our errors as plain ``Error: ...`` lines on stderr.
+
+    Typer wraps ClickExceptions in a rich panel, which folds long URLs and adds
+    box-drawing characters; that hurts scripts that read stderr. Typer's own
+    usage errors keep their panel.
+    """
+    original = rich_utils.rich_format_error
+
+    def render(exc: Any) -> None:
+        if isinstance(exc, ClarifyError):
+            exc.show()
+        else:
+            original(exc)
+
+    rich_utils.rich_format_error = render
+
+
+_install_plain_error_rendering()

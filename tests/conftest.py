@@ -13,6 +13,18 @@ WS = f"{BASE_URL}/workspaces/acme"
 
 
 @pytest.fixture(autouse=True)
+def no_network():
+    """Fail loudly if a test lets a request escape its mocks.
+
+    respx consults routers in registration order, so this empty router is the
+    fallback for every test: a request no ``api`` (or ad-hoc) router handles
+    raises ``AllMockedAssertionError`` instead of reaching the real network.
+    """
+    with respx.mock(assert_all_mocked=True, assert_all_called=False):
+        yield
+
+
+@pytest.fixture(autouse=True)
 def isolated_env(tmp_path, monkeypatch):
     """Point config at a temp file, provide fake credentials, and disable sleeping."""
     monkeypatch.setenv("CLARIFY_CONFIG", str(tmp_path / "config.toml"))

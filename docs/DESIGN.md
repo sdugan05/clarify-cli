@@ -133,7 +133,8 @@ Every list-style command accepts:
 
 - `-n, --limit N` (default 50) total items to return; `--all` fetches every page.
 - `--offset N` starting offset; `--page-size N` sets `page[limit]` per request
-  (defaults: `min(limit, 1000)` for a bounded request, 500 with `--all`).
+  (default `min(limit, 500)`; the client never sends more than 500, the maximum
+  several endpoints declare).
 - `-s, --sort FIELD | FIELD:asc | FIELD:desc | -FIELD` → `sortOrder[...]`.
 - `-f, --filter FIELD=VALUE` (repeatable). `FIELD[Operator]=VALUE` names an
   operator; the value may use the API's shorthand (`>100`, `*Smith*`, `null`,

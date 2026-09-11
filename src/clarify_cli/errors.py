@@ -43,7 +43,7 @@ class ClarifyError(ClickException):
     def show(self, file: Any = None) -> None:
         from .console import err_console
 
-        err_console.print(f"[bold red]Error:[/] {escape(self.format_message())}")
+        err_console.print(f"[bold red]Error:[/] {escape(self.format_message())}", soft_wrap=True)
 
 
 class ConfigError(ClarifyError):
