@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+from clarify_cli import __version__
+
+
+def test_version(invoke):
+    result = invoke("--version")
+    assert result.exit_code == 0
+    assert result.stdout.strip() == f"clarify-cli {__version__}"
+
+
+def test_help_lists_groups(invoke):
+    result = invoke("--help")
+    assert result.exit_code == 0
+    for group in ("auth", "config", "api", "records", "lists", "schemas", "users", "settings"):
+        assert group in result.stdout
+
+
+def test_missing_api_key_is_exit_3(invoke, monkeypatch):
+    monkeypatch.delenv("CLARIFY_API_KEY")
+    result = invoke("users", "list")
+    assert result.exit_code == 3
+    assert "No API key configured" in result.stderr
+    assert "clarify auth login" in result.stderr
+
+
+def test_missing_workspace_is_exit_3(invoke, monkeypatch):
+    monkeypatch.delenv("CLARIFY_WORKSPACE")
+    result = invoke("users", "list")
+    assert result.exit_code == 3
+    assert "No workspace configured" in result.stderr
+
+
+def test_invalid_output_format_is_usage_error(invoke):
+    result = invoke("-o", "xml", "users", "list")
+    assert result.exit_code == 2
