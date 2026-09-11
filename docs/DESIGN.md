@@ -43,6 +43,12 @@ Each command module owns exactly one file under `commands/` and one test file
 under `tests/`. Modules never import from each other; shared behaviour lives in
 the core modules listed above.
 
+Every command module declares `OPERATIONS: dict[str, str]` mapping each OpenAPI
+`operationId` it implements to the CLI command name (for example
+`{"getUsers": "list", "getUser": "get"}`). Convenience commands that are not a
+single operation (such as `attachments upload`) are not listed. A test checks
+that the union of all manifests covers every operation in the spec.
+
 ## Naming
 
 - Package `clarify_cli`, distribution `clarify-cli`, executable `clarify`.

@@ -13,6 +13,10 @@ from ..state import get_state
 
 app = typer.Typer(no_args_is_help=True)
 
+# OpenAPI operationId -> command name. Every module declares this so a test can
+# prove the CLI covers the whole spec.
+OPERATIONS: dict[str, str] = {"getUsers": "list", "getUser": "get"}
+
 
 @app.command("list")
 def list_users(
