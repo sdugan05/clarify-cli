@@ -156,7 +156,7 @@ def list_records(
 
         clarify records list deal -f 'amount[Greater than]=50000' -s -amount -i company_id
 
-        clarify records list company -f 'name=*Acme*' --all -o ndjson > companies.ndjson
+        clarify -o ndjson records list company -f 'name=*Acme*' --all > companies.ndjson
     """
     state = get_state(ctx)
     result = collect_list(
@@ -454,7 +454,7 @@ def bulk_delete(
 
         clarify records bulk-delete company -F stale-ids.txt
 
-        clarify records list deal -f stage=Lost -o ndjson \\
+        clarify -o ndjson records list deal -f stage=Lost \\
             | clarify --yes records bulk-delete deal -F - --format ndjson
     """
     state = get_state(ctx)

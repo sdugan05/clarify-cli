@@ -117,7 +117,7 @@ def list_settings(ctx: typer.Context) -> None:
     is the API's `{key: value}` object verbatim; table, CSV, and NDJSON output show
     one `key`/`value` row per setting. Example:
 
-        clarify settings list -o table
+        clarify -o table settings list
     """
     state = get_state(ctx)
     body = state.client().get("/settings")
@@ -177,7 +177,7 @@ def reset_setting(ctx: typer.Context, key: KeyArg) -> None:
     Asks for confirmation unless --yes is given. Sends `{"key": KEY}` as the
     request body. Example:
 
-        clarify settings reset orgDescription --yes
+        clarify --yes settings reset orgDescription
     """
     state = get_state(ctx)
     key = normalize_key(key)

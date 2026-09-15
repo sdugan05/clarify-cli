@@ -231,7 +231,7 @@ def set_related(
 
         clarify relationships set person PERSON_ID company_id --id COMPANY_ID
 
-        clarify relationships set company COMPANY_ID people --clear --id PERSON_ID --yes
+        clarify --yes relationships set company COMPANY_ID people --clear --id PERSON_ID
 
         clarify relationships set deal DEAL_ID people --data @people.json
     """
@@ -267,7 +267,7 @@ def unlink_related(
 
     Examples:
 
-        clarify relationships unlink person PERSON_ID deals --id DEAL_ID --yes
+        clarify --yes relationships unlink person PERSON_ID deals --id DEAL_ID
 
         clarify relationships unlink deal DEAL_ID people --data '[{"type": "person", "id": "P1"}]'
     """

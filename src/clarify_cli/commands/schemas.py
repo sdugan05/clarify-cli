@@ -229,7 +229,7 @@ def list_schemas(ctx: typer.Context) -> None:
 
     JSON output is the API's schema list verbatim (pages merged, `links` dropped);
     table/CSV output shows one row per schema with its id, object name, title and
-    field count. Example: `clarify schemas list -o table`
+    field count. Example: `clarify -o table schemas list`
     """
     state = get_state(ctx)
     envelope = fetch_schemas(state)
@@ -249,7 +249,7 @@ def objects(ctx: typer.Context) -> None:
     """List the object types that have a schema: person, company, c_* ... (GET /schemas).
 
     Derived from `GET /schemas`: only `entities/*` schemas are listed, never the
-    shared `core/*` definitions. Example: `clarify schemas objects -o json`
+    shared `core/*` definitions. Example: `clarify -o json schemas objects`
     """
     state = get_state(ctx)
     rows: list[dict[str, Any]] = []

@@ -50,9 +50,9 @@ def command(
 
         clarify api GET /objects/person/resources -P 'page[limit]=5' -P 'filter[name]=*Smith*'
 
-        clarify api POST /comments -d @comment.json --silent
+        clarify --silent api POST /comments -d @comment.json
 
-        clarify api GET /users --all -o ndjson
+        clarify -o ndjson api GET /users --all
     """
     state = get_state(ctx)
     verb = method.upper()

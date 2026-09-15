@@ -268,7 +268,7 @@ clarify records list person -f email_addresses=jane@acme.com
 
 clarify records list deal -f 'amount[Greater than]=50000' -s -amount -i company_id
 
-clarify records list company -f 'name=*Acme*' --all -o ndjson > companies.ndjson
+clarify -o ndjson records list company -f 'name=*Acme*' --all > companies.ndjson
 ```
 
 **Arguments**
@@ -541,7 +541,7 @@ clarify --yes records bulk-delete person 5f8b... 7a1c...
 
 clarify records bulk-delete company -F stale-ids.txt
 
-clarify records list deal -f stage=Lost -o ndjson \
+clarify -o ndjson records list deal -f stage=Lost \
     | clarify --yes records bulk-delete deal -F - --format ndjson
 ```
 
@@ -932,7 +932,7 @@ clarify schemas list
 
 JSON output is the API's schema list verbatim (pages merged, `links` dropped);
 table/CSV output shows one row per schema with its id, object name, title and
-field count. Example: `clarify schemas list -o table`
+field count. Example: `clarify -o table schemas list`
 
 ### schemas objects
 
@@ -943,7 +943,7 @@ clarify schemas objects
 ```
 
 Derived from `GET /schemas`: only `entities/*` schemas are listed, never the
-shared `core/*` definitions. Example: `clarify schemas objects -o json`
+shared `core/*` definitions. Example: `clarify -o json schemas objects`
 
 ### schemas get
 
@@ -1346,7 +1346,7 @@ clarify relationships set person PERSON_ID deals --id DEAL_ID --id OTHER_DEAL_ID
 
 clarify relationships set person PERSON_ID company_id --id COMPANY_ID
 
-clarify relationships set company COMPANY_ID people --clear --id PERSON_ID --yes
+clarify --yes relationships set company COMPANY_ID people --clear --id PERSON_ID
 
 clarify relationships set deal DEAL_ID people --data @people.json
 ```
@@ -1382,7 +1382,7 @@ themselves are not deleted. Asks for confirmation unless `--yes` is given.
 Examples:
 
 ```bash
-clarify relationships unlink person PERSON_ID deals --id DEAL_ID --yes
+clarify --yes relationships unlink person PERSON_ID deals --id DEAL_ID
 
 clarify relationships unlink deal DEAL_ID people --data '[{"type": "person", "id": "P1"}]'
 ```
@@ -2471,7 +2471,7 @@ is the API's `{key: value}` object verbatim; table, CSV, and NDJSON output show
 one `key`/`value` row per setting. Example:
 
 ```bash
-clarify settings list -o table
+clarify -o table settings list
 ```
 
 ### settings get
@@ -2524,7 +2524,7 @@ Asks for confirmation unless --yes is given. Sends `{"key": KEY}` as the
 request body. Example:
 
 ```bash
-clarify settings reset orgDescription --yes
+clarify --yes settings reset orgDescription
 ```
 
 **Arguments**
