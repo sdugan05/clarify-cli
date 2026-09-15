@@ -122,7 +122,7 @@ def test_records_list_all_follows_links(invoke, api):
     assert [json.loads(line)["id"] for line in result.stdout.splitlines()] == ["c1", "c2"]
     assert route.call_count == 2
     assert query_pairs(route.calls[0].request) == [("page[limit]", "500")]
-    assert str(route.calls[1].request.url) == f"{base}?page%5Boffset%5D=1"
+    assert str(route.calls[1].request.url) == f"{base}?page%5Blimit%5D=500&page%5Boffset%5D=1"
 
 
 def test_records_list_bad_filter_is_usage_error(invoke, api):

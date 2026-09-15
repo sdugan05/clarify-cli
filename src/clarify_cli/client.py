@@ -1,7 +1,7 @@
 """Thin HTTP client for the Clarify API.
 
 Responsibilities: the ``api-key`` auth header, workspace-scoped URLs, JSON:API
-error translation, bounded retries for 429/5xx, and ``links.next`` pagination.
+error translation, bounded retries for 429/5xx, and offset pagination.
 It deliberately knows nothing about individual endpoints.
 """
 
@@ -11,6 +11,7 @@ import json
 import time
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 from rich.markup import escape
@@ -204,24 +205,46 @@ class ClarifyClient:
         page_size: int | None = None,
         offset: int | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Yield each page of a list endpoint, following ``links.next`` verbatim."""
+        """Yield each page of a list endpoint without leaving the configured base URL.
+
+        The API emits ``links.next`` with a plain ``http://`` scheme that does
+        not answer, so it is never fetched as-is. While pages carry
+        ``meta.offset`` and ``meta.limit`` the next page is requested at
+        ``path`` with the original query and ``page[offset]`` advanced by the
+        server's limit; otherwise ``links.next`` is followed on the base URL's
+        scheme and host. Iteration ends when ``links.next`` is null, ``data``
+        is empty, or the next offset reaches ``meta.total_records``.
+        """
         pairs = normalize_params(params)
         if page_size is not None:
             pairs.append(("page[limit]", str(page_size)))
         if offset:
             pairs.append(("page[offset]", str(offset)))
-        next_url: str | None = path
-        first = True
-        while next_url:
-            body = self.get(next_url, params=pairs if first else None)
-            first = False
+        requested = offset or 0
+        url = path
+        query: ParamPairs | None = pairs
+        while True:
+            body = self.get(url, params=query)
             if not isinstance(body, dict):
-                raise ClarifyError(
-                    f"Expected a JSON object from {next_url}, got {type(body).__name__}"
-                )
+                raise ClarifyError(f"Expected a JSON object from {url}, got {type(body).__name__}")
             yield body
-            links = body.get("links") or {}
-            next_url = links.get("next") if isinstance(links, dict) else None
+            links = body.get("links")
+            next_link = links.get("next") if isinstance(links, dict) else None
+            if not next_link or not body.get("data"):
+                return
+            meta = body.get("meta")
+            meta = meta if isinstance(meta, dict) else {}
+            page_offset, limit = meta.get("offset"), meta.get("limit")
+            if not (isinstance(page_offset, int) and isinstance(limit, int)):
+                url, query = self._on_base_url(next_link), None
+                continue
+            advanced = page_offset + limit
+            total = meta.get("total_records")
+            if advanced <= requested or (isinstance(total, int) and advanced >= total):
+                return
+            requested = advanced
+            url = path
+            query = [*(p for p in pairs if p[0] != "page[offset]"), ("page[offset]", str(advanced))]
 
     def collect(
         self,
@@ -271,6 +294,19 @@ class ClarifyClient:
         return out
 
     # -- internals -------------------------------------------------------
+    def _on_base_url(self, link: str) -> str:
+        """Put a ``links.next`` URL on the base URL's scheme and host.
+
+        Only the link's path and query are trusted; the API emits its origin as
+        plain ``http://``. Links on another host, or without one, are returned
+        unchanged for :meth:`url_for` to resolve.
+        """
+        parts = urlsplit(link)
+        base = urlsplit(self.base_url)
+        if not parts.hostname or parts.hostname != base.hostname:
+            return link
+        return urlunsplit((base.scheme, base.netloc, parts.path, parts.query, parts.fragment))
+
     @staticmethod
     def _retry_delay(response: httpx.Response, attempt: int) -> float:
         retry_after = response.headers.get("Retry-After")
