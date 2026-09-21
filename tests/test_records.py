@@ -47,6 +47,7 @@ def test_records_operations_cover_records_and_resources_tags():
         "bulk-delete",
         "merge",
         "deleted",
+        "convert-partner-deal",  # convenience: several operations, so not in OPERATIONS
     }
 
 
@@ -122,7 +123,7 @@ def test_records_list_all_follows_links(invoke, api):
     assert [json.loads(line)["id"] for line in result.stdout.splitlines()] == ["c1", "c2"]
     assert route.call_count == 2
     assert query_pairs(route.calls[0].request) == [("page[limit]", "500")]
-    assert str(route.calls[1].request.url) == f"{base}?page%5Boffset%5D=1"
+    assert str(route.calls[1].request.url) == f"{base}?page%5Blimit%5D=500&page%5Boffset%5D=1"
 
 
 def test_records_list_bad_filter_is_usage_error(invoke, api):
@@ -1014,3 +1015,257 @@ def test_records_deleted_has_no_include_or_sort(invoke, api):
     assert invoke("records", "deleted", "deal", "--include", "company_id").exit_code == 2
     assert invoke("records", "deleted", "deal", "--sort", "_deleted_at").exit_code == 2
     assert not route.called
+
+
+# -- convert-partner-deal ---------------------------------------------------------
+
+PC_FIXTURES = Path(__file__).parent / "fixtures" / "partner_conversion"
+PC_DEAL = "d1000000-0000-4000-8000-000000000001"
+PC_NEW = "9d000000-0000-4000-8000-00000000new1"
+
+
+def _pc_reads(api):
+    """Mount the three reads the command makes and return their routes."""
+    deal = api.get(f"{WS}/objects/deal/resources/{PC_DEAL}").mock(
+        return_value=httpx.Response(200, json=json.loads((PC_FIXTURES / "deal.json").read_text()))
+    )
+    people = api.get(f"{WS}/objects/deal/records/{PC_DEAL}/relationships/people").mock(
+        return_value=httpx.Response(200, json=json.loads((PC_FIXTURES / "people.json").read_text()))
+    )
+    tasks = api.get(f"{WS}/objects/task/resources").mock(
+        return_value=httpx.Response(200, json=json.loads((PC_FIXTURES / "tasks.json").read_text()))
+    )
+    return deal, people, tasks
+
+
+def test_convert_partner_deal_dry_run_only_reads(invoke, api):
+    deal, people, tasks = _pc_reads(api)
+    writes = [
+        api.post(f"{WS}/objects/c_partner_deal/records"),
+        api.patch(f"{WS}/objects/task/records"),
+        api.patch(f"{WS}/objects/deal/records/{PC_DEAL}"),
+        api.delete(f"{WS}/objects/deal/records/{PC_DEAL}"),
+    ]
+    result = invoke(
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--close-original",
+        "Partner, not a customer",
+    )
+    assert result.exit_code == 0, result.output
+    assert query_pairs(deal.calls.last.request) == [("include", "company_id")]
+    assert query_pairs(people.calls.last.request) == [("page[limit]", "500")]
+    assert query_pairs(tasks.calls.last.request) == [
+        ("filter[deal_id]", PC_DEAL),
+        ("page[limit]", "500"),
+    ]
+    assert not any(route.called for route in writes)
+    plan = json.loads(result.stdout)
+    assert (
+        plan["partner_deal"]["attributes"]["partner_id"] == "c1000000-0000-4000-8000-000000000001"
+    )
+    assert plan["original"]["action"] == "close"
+    assert [r["method"] for r in plan["requests"]] == ["POST", "PATCH", "PATCH", "PATCH"]
+
+
+def test_convert_partner_deal_dry_run_table_prints_summary(invoke, api):
+    _pc_reads(api)
+    result = invoke(
+        "-o", "table", "records", "convert-partner-deal", PC_DEAL, "--partner-type", "Distributor"
+    )
+    assert result.exit_code == 0, result.output
+    assert f"Convert deal {PC_DEAL}" in result.stdout
+    assert "Dry run: nothing was sent" in result.stdout
+
+
+def test_convert_partner_deal_apply_pins_requests(invoke, api):
+    _pc_reads(api)
+    create = api.post(f"{WS}/objects/c_partner_deal/records").mock(
+        return_value=httpx.Response(
+            201,
+            json={"data": resource("c_partner_deal", PC_NEW, name="Northwind Partners")},
+        )
+    )
+    contacts = api.patch(
+        f"{WS}/objects/c_partner_deal/records/{PC_NEW}/relationships/contacts"
+    ).mock(return_value=httpx.Response(200))
+    tasks = api.patch(f"{WS}/objects/task/records").mock(return_value=httpx.Response(200))
+    close = api.patch(f"{WS}/objects/deal/records/{PC_DEAL}").mock(return_value=httpx.Response(200))
+    result = invoke(
+        "--silent",
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--apply",
+        "--close-original",
+        "Partner, not a customer",
+    )
+    assert result.exit_code == 0, result.output
+    body = json_body(create.calls.last.request)
+    assert body["data"]["type"] == "c_partner_deal"
+    assert body["data"]["attributes"]["name"] == "Northwind Partners"
+    assert body["data"]["attributes"]["partner_type"] == "Reseller / VAR"
+    assert re.search(
+        rf"\n\nConverted from deal {PC_DEAL} on \d{{4}}-\d{{2}}-\d{{2}}\.$",
+        body["data"]["attributes"]["description"],
+    )
+    assert query_pairs(create.calls.last.request) == [("silent", "true")]
+    assert json_body(contacts.calls.last.request) == {
+        "data": [
+            {"type": "person", "id": "p1000000-0000-4000-8000-000000000001"},
+            {"type": "person", "id": "p1000000-0000-4000-8000-000000000002"},
+        ]
+    }
+    assert json_body(tasks.calls.last.request) == {
+        "data": [
+            {
+                "type": "task",
+                "id": "t1000000-0000-4000-8000-000000000001",
+                "attributes": {"c_partner_deal_id": PC_NEW, "deal_id": None},
+            }
+        ]
+    }
+    assert json_body(close.calls.last.request)["data"]["attributes"] == {
+        "stage": "Closed Disqualified",
+        "disqualified_reason": "Partner, not a customer",
+    }
+    for route in (contacts, tasks, close):
+        assert query_pairs(route.calls.last.request) == [("silent", "true")]
+    out = json.loads(result.stdout)
+    assert out["partner_deal_id"] == PC_NEW
+    assert [r["method"] for r in out["requests"]] == ["POST", "PATCH", "PATCH", "PATCH"]
+    assert f"Converted deal {PC_DEAL} into c_partner_deal {PC_NEW}" in flat(result.stderr)
+
+
+def test_convert_partner_deal_delete_original_requires_confirmation(invoke, api):
+    _pc_reads(api)
+    create = api.post(f"{WS}/objects/c_partner_deal/records")
+    result = invoke(
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--apply",
+        "--delete-original",
+    )
+    assert result.exit_code == 2
+    assert "Refusing to continue without confirmation" in result.stderr
+    assert not create.called
+
+
+def test_convert_partner_deal_delete_original_with_yes(invoke, api):
+    _pc_reads(api)
+    api.post(f"{WS}/objects/c_partner_deal/records").mock(
+        return_value=httpx.Response(201, json={"data": resource("c_partner_deal", PC_NEW)})
+    )
+    api.patch(f"{WS}/objects/c_partner_deal/records/{PC_NEW}/relationships/contacts").mock(
+        return_value=httpx.Response(200)
+    )
+    api.patch(f"{WS}/objects/task/records").mock(return_value=httpx.Response(200))
+    delete = api.delete(f"{WS}/objects/deal/records/{PC_DEAL}").mock(
+        return_value=httpx.Response(204)
+    )
+    result = invoke(
+        "--yes",
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--apply",
+        "--delete-original",
+    )
+    assert result.exit_code == 0, result.output
+    assert delete.called
+    assert json.loads(result.stdout)["requests"][-1] == {
+        "method": "DELETE",
+        "path": f"/objects/deal/records/{PC_DEAL}",
+    }
+
+
+def test_convert_partner_deal_failure_after_create_names_the_new_record(invoke, api):
+    _pc_reads(api)
+    api.post(f"{WS}/objects/c_partner_deal/records").mock(
+        return_value=httpx.Response(201, json={"data": resource("c_partner_deal", PC_NEW)})
+    )
+    api.patch(f"{WS}/objects/c_partner_deal/records/{PC_NEW}/relationships/contacts").mock(
+        return_value=httpx.Response(200)
+    )
+    tasks = api.patch(f"{WS}/objects/task/records").mock(
+        return_value=error_response(422, "Unknown field c_partner_deal_id")
+    )
+    close = api.patch(f"{WS}/objects/deal/records/{PC_DEAL}")
+    result = invoke(
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--apply",
+        "--close-original",
+        "x",
+    )
+    assert result.exit_code == 1
+    assert tasks.called and not close.called
+    text = flat(result.stderr)
+    assert "Unknown field c_partner_deal_id" in text
+    assert f"Partner deal {PC_NEW} was created" in text
+    assert "do not re-run --apply" in text
+
+
+def test_convert_partner_deal_rejects_close_with_delete(invoke, api):
+    deal, _people, _tasks = _pc_reads(api)
+    result = invoke(
+        "records",
+        "convert-partner-deal",
+        PC_DEAL,
+        "--partner-type",
+        "Reseller / VAR",
+        "--close-original",
+        "x",
+        "--delete-original",
+    )
+    assert result.exit_code == 2
+    assert "mutually exclusive" in result.stderr
+    assert not deal.called
+
+
+def test_convert_partner_deal_rejects_unknown_partner_type(invoke, api):
+    deal, _people, _tasks = _pc_reads(api)
+    result = invoke("records", "convert-partner-deal", PC_DEAL, "--partner-type", "Friend")
+    assert result.exit_code == 2
+    assert not deal.called
+
+
+def test_convert_partner_deal_refuses_through_partner_deal(invoke, api):
+    doc = json.loads((PC_FIXTURES / "deal.json").read_text())
+    doc["data"]["attributes"]["partner_id"] = "c2000000-0000-4000-8000-000000000009"
+    api.get(f"{WS}/objects/deal/resources/{PC_DEAL}").mock(
+        return_value=httpx.Response(200, json=doc)
+    )
+    api.get(f"{WS}/objects/deal/records/{PC_DEAL}/relationships/people").mock(
+        return_value=httpx.Response(200, json=page([]))
+    )
+    api.get(f"{WS}/objects/task/resources").mock(return_value=httpx.Response(200, json=page([])))
+    create = api.post(f"{WS}/objects/c_partner_deal/records")
+    result = invoke(
+        "records", "convert-partner-deal", PC_DEAL, "--partner-type", "Reseller / VAR", "--apply"
+    )
+    assert result.exit_code == 2
+    assert "sold through partner" in flat(result.stderr)
+    assert not create.called
+
+
+def test_convert_partner_deal_not_found_exit_4(invoke, api):
+    api.get(f"{WS}/objects/deal/resources/nope").mock(
+        return_value=error_response(404, "Record not found")
+    )
+    result = invoke("records", "convert-partner-deal", "nope", "--partner-type", "Reseller / VAR")
+    assert result.exit_code == 4
+    assert "HTTP 404" in result.stderr

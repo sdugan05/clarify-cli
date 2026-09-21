@@ -279,7 +279,7 @@ show the same text.
 | [`auth`](docs/COMMANDS.md#auth)                   | `login`, `status`, `logout`                                                                                                                                    |
 | [`config`](docs/COMMANDS.md#config)               | `path`, `list`, `get`, `set`, `unset`                                                                                                                          |
 | [`api`](docs/COMMANDS.md#api)                     | `api METHOD PATH` — any endpoint, with `-P` query params, `-d` body, `--all` paging, `--out` raw download                                                       |
-| [`records`](docs/COMMANDS.md#records)             | `list`, `get`, `create`, `update`, `delete`, `bulk-create`, `bulk-update`, `bulk-delete`, `merge`, `deleted`                                                   |
+| [`records`](docs/COMMANDS.md#records)             | `list`, `get`, `create`, `update`, `delete`, `bulk-create`, `bulk-update`, `bulk-delete`, `merge`, `deleted`, `convert-partner-deal`                           |
 | [`lists`](docs/COMMANDS.md#lists)                 | `list`, `get`, `create`, `update`, `delete`, `publish`, `unpublish`, `records`, `export-csv`                                                                   |
 | [`schemas`](docs/COMMANDS.md#schemas)             | `list`, `objects`, `get`, `fields`, `create-object`, `replace`, `delete-object`, `add-fields`, `add-relationships`, `delete-relationship`, `reorder`, `visibility`, `enum`, `activities` |
 | [`activities`](docs/COMMANDS.md#activities)       | `list`                                                                                                                                                         |
@@ -295,11 +295,57 @@ show the same text.
 | [`settings`](docs/COMMANDS.md#settings)           | `list`, `get`, `set`, `reset`                                                                                                                                  |
 | [`users`](docs/COMMANDS.md#users)                 | `list`, `get`                                                                                                                                                  |
 
+## Converting a deal into a partner deal
+
+Partners sometimes land in the customer pipeline. `records convert-partner-deal` moves one
+Prospecting-style deal onto the `c_partner_deal` object in a single command and keeps the
+history: the same people become the partner deal's contacts, open tasks are re-pointed, and
+emails and meetings are untouched because they hang off the shared people and companies.
+
+```bash
+# Dry run (default): prints the plan and the exact requests, sends nothing
+clarify records convert-partner-deal DEAL_ID --partner-type "Reseller / VAR"
+
+# Do it, and close the original as Closed Disqualified with a reason
+clarify --silent records convert-partner-deal DEAL_ID --partner-type "MSSP / MSP" \
+  --apply --close-original "Partner, not a customer"
+
+# Do it and delete the original (asks; --yes skips)
+clarify --silent --yes records convert-partner-deal DEAL_ID \
+  --partner-type "Consultant / vCISO" --apply --delete-original
+```
+
+`--partner-type` is required and takes one of `Reseller / VAR`, `MSSP / MSP`,
+`Consultant / vCISO`, `Technology Partner`, `Distributor`, `Strategic Alliance`,
+`Referral Partner`. Without `--close-original` or `--delete-original` the original deal is
+left as it is. A deal that already has `partner_id` set (a customer deal sold through a
+partner) is refused.
+
+| Partner deal field | Source |
+| --- | --- |
+| `name` | the deal's company name (falls back to the deal name) |
+| `owner_id` | `deal.owner_id` |
+| `partner_id` | `deal.company_id` |
+| `partner_type` | `--partner-type` |
+| `stage` | `deal.stage` when the same stage exists on the partner object (Prospecting, Discovery); otherwise empty, with a note |
+| `lead_source` | `deal.lead_source` when the value exists on the partner object; `Partner / Channel` does not, so it is dropped with a note |
+| `description` | `deal.description` + `Converted from deal <id> on <date>.` |
+| `contacts` | every person on the deal (`PATCH .../relationships/contacts`) |
+| `tasks` | every task whose status is not Done/Canceled: `c_partner_deal_id` set, `deal_id` cleared (one bulk `PATCH /objects/task/records`); finished tasks stay on the deal |
+| original deal | kept, or `stage = Closed Disqualified` + `disqualified_reason` (`--close-original`), or deleted (`--delete-original`) |
+| emails, meetings | not touched |
+
+The plan is JSON when piped (`deal`, `partner_deal`, `contacts`, `tasks`, `skipped_tasks`,
+`original`, `notes`, `requests`) and a readable summary on a terminal. With `--apply` the
+requests run in order; if one fails after the create, the error names the new partner deal
+and the completed steps so the rest can be finished by hand rather than re-run.
+
 ## Notes
 
 **Destructive commands ask first.** `delete`, `bulk-delete`, `merge`, `revoke`, `reset`,
 `delete-object`, `delete-relationship`, `unlink`, `disable-recording`, `layouts reset`,
-`relationships set --clear`, and `schemas enum --remove` prompt for confirmation. `-y/--yes` (before the group name)
+`relationships set --clear`, `convert-partner-deal --delete-original`, and
+`schemas enum --remove` prompt for confirmation. `-y/--yes` (before the group name)
 skips the prompt. When stdin is not a terminal and `--yes` is absent, the command refuses
 with exit code 2 instead of hanging, so scripts must pass `--yes` explicitly:
 

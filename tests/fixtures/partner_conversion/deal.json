@@ -1,0 +1,72 @@
+{
+  "data": {
+    "type": "deal",
+    "id": "d1000000-0000-4000-8000-000000000001",
+    "attributes": {
+      "_id": "d1000000-0000-4000-8000-000000000001",
+      "name": "Northwind Partners - Demo Request",
+      "description": "Inbound demo request from Pat Example (Principal Architect). Exploring a resale partnership.",
+      "stage": "Prospecting",
+      "owner_id": "user_01OWNER00000000000000000000",
+      "amount": null,
+      "close_date": "2026-10-30",
+      "_updated_at": "2026-09-09T21:52:51.589Z",
+      "_updated_by": "user_01OWNER00000000000000000000",
+      "_created_at": "2026-08-22T04:36:56.785Z",
+      "_created_by": "user_01OWNER00000000000000000000",
+      "summary": null,
+      "_merged_ids": null,
+      "company_id": "c1000000-0000-4000-8000-000000000001",
+      "labels": null,
+      "next_task_id": null,
+      "logo_url": null,
+      "profile_colors": {"primary": null, "tertiary": null, "secondary": null},
+      "endpoint_count": null,
+      "partner_id": null,
+      "total_endpoint": null,
+      "deal_type": "Direct",
+      "demo_date": null,
+      "trial_eval_agreement_status": null,
+      "trial_signed_date": null,
+      "csa_status": null,
+      "csa_signed_date": null,
+      "motion_type": "Direct Sales",
+      "deployed_endpoints": null,
+      "lead_source": "Partner / Channel",
+      "competitors_in_deal": null,
+      "demo_owner_ping_state": null,
+      "total_workstations": 2400,
+      "total_workstations_meta": null,
+      "deal_intel": null,
+      "disqualified_reason": null
+    },
+    "relationships": {
+      "company_id": {"data": {"type": "company", "id": "c1000000-0000-4000-8000-000000000001"}},
+      "people": {
+        "data": [
+          {"type": "person", "id": "p1000000-0000-4000-8000-000000000001"},
+          {"type": "person", "id": "p1000000-0000-4000-8000-000000000002"}
+        ],
+        "meta": {"count": 2}
+      },
+      "tasks": {
+        "data": [
+          {"type": "task", "id": "t1000000-0000-4000-8000-000000000001"},
+          {"type": "task", "id": "t1000000-0000-4000-8000-000000000002"}
+        ],
+        "meta": {"count": 2}
+      }
+    }
+  },
+  "included": [
+    {
+      "type": "company",
+      "id": "c1000000-0000-4000-8000-000000000001",
+      "attributes": {
+        "_id": "c1000000-0000-4000-8000-000000000001",
+        "name": "Northwind Partners",
+        "domains": {"items": ["northwind.example"]}
+      }
+    }
+  ]
+}

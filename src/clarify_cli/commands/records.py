@@ -27,10 +27,19 @@ from ..cli_options import (
     SetOpt,
     SortOpt,
 )
+from ..console import console
 from ..errors import APIError, ClarifyError, UsageError
 from ..inputs import body_from_options, load_json, load_records, to_resources
-from ..output import emit, emit_message
+from ..output import OutputFormat, emit, emit_message, resolve_format
 from ..params import collect_list, parse_csv_list
+from ..partner_conversion import (
+    PARTNER_OBJECT,
+    PARTNER_TYPES,
+    apply_plan,
+    build_plan,
+    fetch_context,
+    render_plan,
+)
 from ..state import AppState, get_state
 
 app = typer.Typer(no_args_is_help=True)
@@ -63,6 +72,10 @@ DELETED_MAX_PAGE_SIZE = 500
 class Endpoint(StrEnum):
     resources = "resources"
     records = "records"
+
+
+#: `--partner-type` choices: the c_partner_deal Partner Type enum, spelled as in Clarify.
+PartnerType = StrEnum("PartnerType", {value: value for value in PARTNER_TYPES})
 
 
 IdArg = Annotated[str, typer.Argument(help="The record's ID.", metavar="ID")]
@@ -544,6 +557,85 @@ def deleted(
         page_size=page_size,
     )
     emit(state, result)
+
+
+@app.command("convert-partner-deal")
+def convert_partner_deal(
+    ctx: typer.Context,
+    deal_id: Annotated[str, typer.Argument(help="ID of the customer deal.", metavar="DEAL_ID")],
+    partner_type: Annotated[
+        PartnerType,
+        typer.Option("--partner-type", help="Partner Type of the new c_partner_deal."),
+    ],
+    apply: Annotated[
+        bool, typer.Option("--apply", help="Perform the conversion; the default only plans it.")
+    ] = False,
+    close_original: Annotated[
+        str | None,
+        typer.Option(
+            "--close-original",
+            metavar="REASON",
+            help="Afterwards set the deal to Closed Disqualified with this disqualified_reason.",
+        ),
+    ] = None,
+    delete_original: Annotated[
+        bool,
+        typer.Option("--delete-original", help="Afterwards delete the deal (asks; --yes skips)."),
+    ] = False,
+) -> None:
+    """Convert a customer deal into a c_partner_deal, keeping the history (convenience).
+
+    Reads the deal, its company, its people, and its tasks, then creates one
+    c_partner_deal: name = the company's name, owner = the deal's owner,
+    partner_id = the deal's company, partner_type from --partner-type,
+    lead_source carried over when the value exists on the partner object, and
+    description = the deal's description plus "Converted from deal ID on DATE".
+    The same people are linked as contacts and every open task (status not
+    Done/Canceled) is re-pointed to the partner deal (c_partner_deal_id set,
+    deal_id cleared). Emails and meetings are left alone: they hang off people
+    and companies, so the history stays visible.
+
+    Without --apply nothing is sent: the plan (field mapping, contacts, tasks,
+    and the exact requests) is printed, as JSON when piped. --close-original
+    and --delete-original decide what happens to the original deal; by default
+    it is left unchanged. A deal already sold through a partner (partner_id
+    set) is refused, because that is a customer deal, not a partner.
+
+    Examples:
+
+        clarify records convert-partner-deal DEAL_ID --partner-type "Reseller / VAR"
+
+        clarify --silent records convert-partner-deal DEAL_ID --partner-type "MSSP / MSP" \\
+            --apply --close-original "Partner, not a customer"
+
+        clarify --silent --yes records convert-partner-deal DEAL_ID \\
+            --partner-type "Consultant / vCISO" --apply --delete-original
+    """
+    state = get_state(ctx)
+    if close_original is not None and delete_original:
+        raise UsageError("--close-original and --delete-original are mutually exclusive.")
+    client = state.client()
+    context = fetch_context(client, deal_id)
+    plan = build_plan(
+        context,
+        partner_type=partner_type.value,
+        close_reason=close_original,
+        delete_original=delete_original,
+    )
+    if not apply:
+        if resolve_format(state) is OutputFormat.table:
+            console.print(render_plan(plan), markup=False, highlight=False)
+        else:
+            emit(state, plan)
+        return
+    if delete_original:
+        state.confirm(f"Permanently delete deal {deal_id} after converting it?")
+    result = apply_plan(client, plan, silent=state.silent)
+    emit(state, result)
+    emit_message(
+        f"Converted deal {deal_id} into {PARTNER_OBJECT} {result['partner_deal_id']} "
+        f"({len(result['requests'])} request(s))."
+    )
 
 
 # -- helpers -----------------------------------------------------------------
