@@ -29,6 +29,7 @@ src/clarify_cli/
   output.py          emit(): json | table | ndjson | csv
   params.py          --filter/--sort/--page parsing; collect_list() helper
   inputs.py          --data/@file/stdin, --set KEY=VALUE, record files
+  partner_conversion.py  deal -> c_partner_deal plan builder + executor (records convert-partner-deal)
   cli_options.py     shared Annotated option types (LimitOpt, FilterOpt, ...)
   console.py         rich consoles (stdout, stderr)
   commands/
@@ -220,6 +221,7 @@ Groups marked (core) are written first and serve as the reference pattern.
 | | bulk-delete OBJECT IDS... | `DELETE /objects/{object}/records` | deleteRecords |
 | | merge OBJECT TARGET --source ID... | `POST /objects/{object}/records/{record}/merges` | mergeRecords |
 | | deleted OBJECT | `GET /objects/{object}/deleted-resources` | getDeletedResources |
+| | convert-partner-deal DEAL_ID --partner-type T | read deal (+company), people, tasks → `POST /objects/c_partner_deal/records` → `PATCH .../relationships/contacts` → `PATCH /objects/task/records` → optional `PATCH`/`DELETE` of the deal; dry-run by default | (convenience) |
 | lists | list [OBJECT] | `GET /lists` or `GET /objects/{object}/lists` | getWorkspaceLists / getLists |
 | | get OBJECT LIST | `GET /objects/{object}/lists/{list}` | getList |
 | | create OBJECT | `POST /objects/{object}/lists` | createList |

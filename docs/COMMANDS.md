@@ -249,6 +249,7 @@ Create, read, update, and delete records of any object.
 | [`records bulk-delete`](#records-bulk-delete) | Permanently delete many records by ID (DELETE /objects/{object}/records). |
 | [`records merge`](#records-merge) | Merge duplicates into a target record (POST /objects/{object}/records/{record}/merges). |
 | [`records deleted`](#records-deleted) | List records deleted in the last 30 days (GET /objects/{object}/deleted-resources). |
+| [`records convert-partner-deal`](#records-convert-partner-deal) | Convert a customer deal into a c_partner_deal, keeping the history (convenience). |
 
 ### records list
 
@@ -625,6 +626,57 @@ clarify records deleted deal -f '_deleted_at[Less than]=1787273241' --all
 | `--offset` | INTEGER (min 0) | `0` | Number of items to skip. |
 | `--all` | flag |  | Fetch every page (ignores --limit). |
 | `--page-size` | INTEGER (min 1) |  | Items per request (page[limit]); default derived. |
+
+### records convert-partner-deal
+
+Convert a customer deal into a c_partner_deal, keeping the history (convenience).
+
+```
+clarify records convert-partner-deal [OPTIONS] DEAL_ID
+```
+
+Reads the deal, its company, its people, and its tasks, then creates one
+c_partner_deal: name = the company's name, owner = the deal's owner,
+partner_id = the deal's company, partner_type from --partner-type,
+lead_source carried over when the value exists on the partner object, and
+description = the deal's description plus "Converted from deal ID on DATE".
+The same people are linked as contacts and every open task (status not
+Done/Canceled) is re-pointed to the partner deal (c_partner_deal_id set,
+deal_id cleared). Emails and meetings are left alone: they hang off people
+and companies, so the history stays visible.
+
+Without --apply nothing is sent: the plan (field mapping, contacts, tasks,
+and the exact requests) is printed, as JSON when piped. --close-original
+and --delete-original decide what happens to the original deal; by default
+it is left unchanged. A deal already sold through a partner (partner_id
+set) is refused, because that is a customer deal, not a partner.
+
+Examples:
+
+```bash
+clarify records convert-partner-deal DEAL_ID --partner-type "Reseller / VAR"
+
+clarify --silent records convert-partner-deal DEAL_ID --partner-type "MSSP / MSP" \
+    --apply --close-original "Partner, not a customer"
+
+clarify --silent --yes records convert-partner-deal DEAL_ID \
+    --partner-type "Consultant / vCISO" --apply --delete-original
+```
+
+**Arguments**
+
+| Argument | Type | Required | Description |
+| --- | --- | --- | --- |
+| `DEAL_ID` | TEXT | yes | ID of the customer deal. |
+
+**Options**
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--partner-type` | `Reseller / VAR\|MSSP / MSP\|Consultant / vCISO\|Technology Partner\|Distributor\|Strategic Alliance\|Referral Partner` | required | Partner Type of the new c_partner_deal. |
+| `--apply` | flag |  | Perform the conversion; the default only plans it. |
+| `--close-original REASON` | TEXT |  | Afterwards set the deal to Closed Disqualified with this disqualified_reason. |
+| `--delete-original` | flag |  | Afterwards delete the deal (asks; --yes skips). |
 
 ## lists
 
