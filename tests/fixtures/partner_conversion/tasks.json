@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "type": "task",
+      "id": "t1000000-0000-4000-8000-000000000001",
+      "attributes": {
+        "_id": "t1000000-0000-4000-8000-000000000001",
+        "title": "Follow up: Pat Example demo request",
+        "description": {"text": [{"type": "paragraph", "children": [{"text": "Send deck."}]}]},
+        "priority": "High",
+        "due_date": "2026-08-17",
+        "status": "To Do",
+        "assignee_id": "user_01OWNER00000000000000000000",
+        "deal_id": "d1000000-0000-4000-8000-000000000001",
+        "meeting_id": null,
+        "person_id": "p1000000-0000-4000-8000-000000000001",
+        "company_id": "c1000000-0000-4000-8000-000000000001",
+        "c_partner_deal_id": null
+      }
+    },
+    {
+      "type": "task",
+      "id": "t1000000-0000-4000-8000-000000000002",
+      "attributes": {
+        "_id": "t1000000-0000-4000-8000-000000000002",
+        "title": "Book capabilities demo",
+        "description": null,
+        "priority": null,
+        "due_date": "2026-08-19",
+        "status": "Done",
+        "assignee_id": "user_01OWNER00000000000000000000",
+        "deal_id": "d1000000-0000-4000-8000-000000000001",
+        "meeting_id": null,
+        "person_id": null,
+        "company_id": null,
+        "c_partner_deal_id": null
+      }
+    }
+  ],
+  "meta": {"total_records": 2, "offset": 0, "limit": 500},
+  "links": {"next": null, "prev": null}
+}

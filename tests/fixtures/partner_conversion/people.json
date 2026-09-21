@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "type": "person",
+      "id": "p1000000-0000-4000-8000-000000000001",
+      "attributes": {
+        "_id": "p1000000-0000-4000-8000-000000000001",
+        "name": {"full_name": "Pat Example", "first_name": "Pat", "last_name": "Example"},
+        "email_addresses": {"items": ["pat@northwind.example"]},
+        "job_title": "Principal Architect"
+      }
+    },
+    {
+      "type": "person",
+      "id": "p1000000-0000-4000-8000-000000000002",
+      "attributes": {
+        "_id": "p1000000-0000-4000-8000-000000000002",
+        "name": null,
+        "email_addresses": {"items": ["sam@northwind.example"]},
+        "job_title": "Channel Manager"
+      }
+    }
+  ],
+  "meta": {"total_records": 2, "offset": 0, "limit": 500},
+  "links": {"next": null, "prev": null}
+}
